@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using System.Linq;
+using MovieShop.Core.Entities;
 
 namespace MovieShop.Infrastructure.Services
 {
@@ -39,16 +40,15 @@ namespace MovieShop.Infrastructure.Services
 
         public async Task<MovieDetailsResponseModel> GetMovieAsync(int id)
         {
-            //throw new NotImplementedException();
             var movie = await _repository.GetByIdAsync(id);
             // if (movie == null) throw new NotFoundException("Movie", id);
             //var favoriteCount = await _repository.GetCountAsync(f => f.MovieId == id);
             return null;
         }
 
-        public Task<IEnumerable<MovieResponseModel>> GetMoviesByGenre(int genreId)
+        public async Task<IEnumerable<MovieResponseModel>> GetMoviesByGenre(int genreId)
         {
-            throw new NotImplementedException();
+            return movieToResponseModel(await _repository.GetMoviesByGenre(genreId));
         }
 
         public Task<PagedResultSet<MovieResponseModel>> GetMoviesByPagination(int pageSize = 20, int page = 0, string title = "")
@@ -66,15 +66,23 @@ namespace MovieShop.Infrastructure.Services
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<MovieResponseModel>> GetTopRatedMovies()
+        public async Task<IEnumerable<MovieResponseModel>> GetTopRatedMovies()
         {
-            throw new NotImplementedException();
+            return movieToResponseModel(await _repository.GetTopRatedMovies());
         }
 
         public async Task<IEnumerable<MovieResponseModel>> GetTopRevenueMovies()
         {
-            var movies = await _repository.GetHighestRevenueMovies();
-            // Map our Movie Entity to MovieResponseModel
+            return movieToResponseModel(await _repository.GetHighestRevenueMovies());
+        }
+
+        public Task<MovieDetailsResponseModel> UpdateMovie(MovieCreateRequest movieCreateRequest)
+        {
+            throw new NotImplementedException();
+        }
+
+        private List<MovieResponseModel> movieToResponseModel(IEnumerable<Movie> movies)
+        {
             var movieResponseModel = new List<MovieResponseModel>();
             foreach (var movie in movies)
             {
@@ -87,11 +95,6 @@ namespace MovieShop.Infrastructure.Services
                 });
             }
             return movieResponseModel;
-        }
-
-        public Task<MovieDetailsResponseModel> UpdateMovie(MovieCreateRequest movieCreateRequest)
-        {
-            throw new NotImplementedException();
         }
     }
 }

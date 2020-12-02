@@ -17,14 +17,13 @@ namespace MovieShop.Infrastructure.Repository
         }
         public async Task<IEnumerable<Movie>> GetTopRatedMovies()
         {
-            throw new NotImplementedException();
+            var movies = await _dbContext.Reviews.OrderByDescending(r => r.Rating).Select(r => r.Movie).Take(50).ToListAsync();
+            return movies;
         }
         public async Task<IEnumerable<Movie>> GetMoviesByGenre(int genreId)
         {
-            throw new NotImplementedException();
-            //_dbContext.Set<Movie>().
-            //_dbContext.Set<Movie>().Where();
-            
+            var movies = await _dbContext.MovieGenres.Where(mg => mg.GenreId == genreId).Select(mg => mg.Movie).ToListAsync();
+            return movies;
         }
         public async Task<IEnumerable<Movie>> GetHighestRevenueMovies()
         {
@@ -39,7 +38,7 @@ namespace MovieShop.Infrastructure.Repository
                                         .FirstOrDefaultAsync(m => m.Id == id);
             if (movie == null) return null;
             //var movieRating = await _dbContext.Reviews.Where(r => r.MovieId == id).DefaultIfEmpty()
-                                              //.AverageAsync(r => r == null ? 0 : r.Rating);
+            //.AverageAsync(r => r == null ? 0 : r.Rating);
             //if (movieRating > 0) movie.Rating = movieRating;
             return movie;
         }
