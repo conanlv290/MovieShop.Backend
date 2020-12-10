@@ -42,5 +42,9 @@ namespace MovieShop.Infrastructure.Repository
             //if (movieRating > 0) movie.Rating = movieRating;
             return movie;
         }
+        public async Task<IEnumerable<Review>> GetMovieReviewById(int id)
+        {
+            return await _dbContext.Reviews.Where(r => r.MovieId == id).ToListAsync();
+        }
     }
 }

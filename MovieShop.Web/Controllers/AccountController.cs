@@ -68,6 +68,7 @@ namespace MovieShop.Web.Controllers
 
         //http:localhost/account/login POST
         [HttpPost]
+        
         public async Task<IActionResult> Login(LoginRequestModel loginRequest, string returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");

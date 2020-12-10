@@ -14,15 +14,32 @@ namespace MovieShop.Infrastructure.Services
     public class MovieService : IMovieService
     {
         private readonly IMovieRepository _repository;
-        public MovieService(IMovieRepository repository)
+        private readonly IAsyncRepository<MovieGenre> _movieGenreRepo;
+        public MovieService(IMovieRepository repository, IAsyncRepository<MovieGenre> movieGenreRepo)
         {
             _repository = repository;
+            _movieGenreRepo = movieGenreRepo;
         }
-        public Task<MovieDetailsResponseModel> CreateMovie(MovieCreateRequest movieCreateRequest)
+        public async Task<MovieDetailsResponseModel> CreateMovie(MovieCreateRequest movieCreateRequest)
         {
-            throw new NotImplementedException();
+            var movie = MovieRequestToMovie(movieCreateRequest);
+            foreach (var genre in movieCreateRequest.Genres)
+            {
+                var movieGenre = new MovieGenre { MovieId = movieCreateRequest.Id, GenreId = genre.Id };
+                await _movieGenreRepo.AddAsync(movieGenre);
+            }
+            return movieToDetialResponse(await _repository.AddAsync(movie));
         }
-
+        public async Task<MovieDetailsResponseModel> UpdateMovie(MovieCreateRequest movieCreateRequest)
+        {
+            var movie = MovieRequestToMovie(movieCreateRequest);
+            foreach (var genre in movieCreateRequest.Genres)
+            {
+                var movieGenre = new MovieGenre { MovieId = movieCreateRequest.Id, GenreId = genre.Id };
+                await _movieGenreRepo.UpdateAsync(movieGenre);
+            }
+            return movieToDetialResponse(await _repository.UpdateAsync(movie));
+        }
         public Task<PagedResultSet<MovieResponseModel>> GetAllMoviePurchasesByPagination(int pageSize = 20, int page = 0)
         {
             throw new NotImplementedException();
@@ -40,15 +57,15 @@ namespace MovieShop.Infrastructure.Services
 
         public async Task<MovieDetailsResponseModel> GetMovieAsync(int id)
         {
-            var movie = await _repository.GetByIdAsync(id);
+            return movieToDetialResponse(await _repository.GetByIdAsync(id));
             // if (movie == null) throw new NotFoundException("Movie", id);
-            //var favoriteCount = await _repository.GetCountAsync(f => f.MovieId == id);
-            return null;
+            // var favoriteCount = await _repository.GetCountAsync(f => f.MovieId == id);
+            // return movie;
         }
 
         public async Task<IEnumerable<MovieResponseModel>> GetMoviesByGenre(int genreId)
         {
-            return movieToResponseModel(await _repository.GetMoviesByGenre(genreId));
+            return movieToResponseModelList(await _repository.GetMoviesByGenre(genreId));
         }
 
         public Task<PagedResultSet<MovieResponseModel>> GetMoviesByPagination(int pageSize = 20, int page = 0, string title = "")
@@ -61,27 +78,23 @@ namespace MovieShop.Infrastructure.Services
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<ReviewMovieResponseModel>> GetReviewsForMovie(int id)
+        public async Task<IEnumerable<ReviewMovieResponseModel>> GetReviewsForMovie(int id)
         {
-            throw new NotImplementedException();
+            return movieToReviewResponseList(await _repository.GetMovieReviewById(id));
         }
 
         public async Task<IEnumerable<MovieResponseModel>> GetTopRatedMovies()
         {
-            return movieToResponseModel(await _repository.GetTopRatedMovies());
+            return movieToResponseModelList(await _repository.GetTopRatedMovies());
         }
 
         public async Task<IEnumerable<MovieResponseModel>> GetTopRevenueMovies()
         {
-            return movieToResponseModel(await _repository.GetHighestRevenueMovies());
+            return movieToResponseModelList(await _repository.GetHighestRevenueMovies());
         }
 
-        public Task<MovieDetailsResponseModel> UpdateMovie(MovieCreateRequest movieCreateRequest)
-        {
-            throw new NotImplementedException();
-        }
 
-        private List<MovieResponseModel> movieToResponseModel(IEnumerable<Movie> movies)
+        private List<MovieResponseModel> movieToResponseModelList(IEnumerable<Movie> movies)
         {
             var movieResponseModel = new List<MovieResponseModel>();
             foreach (var movie in movies)
@@ -95,6 +108,52 @@ namespace MovieShop.Infrastructure.Services
                 });
             }
             return movieResponseModel;
+        }
+        private List<ReviewMovieResponseModel> movieToReviewResponseList(IEnumerable<Review> reviews)
+        {
+            var reviewResponseModel = new List<ReviewMovieResponseModel>();
+            foreach (var review in reviews)
+            {
+                reviewResponseModel.Add(new ReviewMovieResponseModel
+                {
+                    MovieId = review.MovieId,
+                    UserId = review.UserId,
+                    Rating = review.Rating,
+                    ReviewText = review.ReviewText
+                });
+            }
+            return reviewResponseModel;
+        }
+        private MovieDetailsResponseModel movieToDetialResponse(Movie movie)
+        {
+            var movieResponseModel = new MovieDetailsResponseModel
+            {
+                Id = movie.Id,
+                PosterUrl = movie.PosterUrl,
+                ReleaseDate = movie.ReleaseDate.Value,
+                Title = movie.Title
+            };
+            return movieResponseModel;
+        }
+        private Movie MovieRequestToMovie(MovieCreateRequest movieCreateRequest)
+        {
+            var movie = new Movie
+            {
+                Title = movieCreateRequest.Title,
+                Overview = movieCreateRequest.Overview,
+                Tagline = movieCreateRequest.Tagline,
+                Revenue = movieCreateRequest.Revenue,
+                Budget = movieCreateRequest.Budget,
+                ImdbUrl = movieCreateRequest.ImdbUrl,
+                TmdbUrl = movieCreateRequest.TmdbUrl,
+                PosterUrl = movieCreateRequest.PosterUrl,
+                BackdropUrl = movieCreateRequest.BackDropUrl,
+                OriginalLanguage = movieCreateRequest.OriginalLanguage,
+                ReleaseDate = movieCreateRequest.RealaseDate,
+                RunTime = movieCreateRequest.RunTime,
+                Price = movieCreateRequest.price,
+            };
+            return movie;
         }
     }
 }
