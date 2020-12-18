@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MovieShop.Core.Models.Request;
 using MovieShop.Core.ServiceInterfaces;
@@ -37,6 +38,19 @@ namespace MovieShop.API.Controllers
                 return Ok();
             }
             return Unauthorized(new { message = "Unauthorized to do so" });
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("{id:int}/purchases")]
+        public async Task<IActionResult> GetUserPurchases(int id)
+        {
+            var purchase = await _userService.GetAllPurchasesForUser(id);
+            if (purchase == null)
+            {
+                return BadRequest(new { message = "No Purchase found" });
+            }
+            return Ok(purchase);
         }
         [HttpGet]
         [Route("{id:int}/movie/{movieId}/favorite")]

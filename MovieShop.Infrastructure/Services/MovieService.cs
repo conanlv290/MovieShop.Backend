@@ -14,11 +14,11 @@ namespace MovieShop.Infrastructure.Services
     public class MovieService : IMovieService
     {
         private readonly IMovieRepository _repository;
-        private readonly IAsyncRepository<MovieGenre> _movieGenreRepo;
-        public MovieService(IMovieRepository repository, IAsyncRepository<MovieGenre> movieGenreRepo)
+        //private readonly IAsyncRepository<MovieGenre> _movieGenreRepo;
+        public MovieService(IMovieRepository repository)
         {
             _repository = repository;
-            _movieGenreRepo = movieGenreRepo;
+            //_movieGenreRepo = movieGenreRepo;
         }
         public async Task<MovieDetailsResponseModel> CreateMovie(MovieCreateRequest movieCreateRequest)
         {
@@ -26,7 +26,7 @@ namespace MovieShop.Infrastructure.Services
             foreach (var genre in movieCreateRequest.Genres)
             {
                 var movieGenre = new MovieGenre { MovieId = movieCreateRequest.Id, GenreId = genre.Id };
-                await _movieGenreRepo.AddAsync(movieGenre);
+                //await _movieGenreRepo.AddAsync(movieGenre);
             }
             return movieToDetialResponse(await _repository.AddAsync(movie));
         }
@@ -36,7 +36,7 @@ namespace MovieShop.Infrastructure.Services
             foreach (var genre in movieCreateRequest.Genres)
             {
                 var movieGenre = new MovieGenre { MovieId = movieCreateRequest.Id, GenreId = genre.Id };
-                await _movieGenreRepo.UpdateAsync(movieGenre);
+                //await _movieGenreRepo.UpdateAsync(movieGenre);
             }
             return movieToDetialResponse(await _repository.UpdateAsync(movie));
         }

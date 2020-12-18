@@ -17,17 +17,16 @@ namespace MovieShop.Infrastructure.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly ICryptoService _encryptionService;
-        private readonly IAsyncRepository<Favorite> _favoriteRepo;
-        private readonly IAsyncRepository<Review> _reviewRepo;
+        //private readonly IAsyncRepository<Favorite> _favoriteRepo;
+        //private readonly IAsyncRepository<Review> _reviewRepo;
 
         // constructor and dependency injection
-        public UserService(IUserRepository userRepository, ICryptoService cryptoService, 
-            IAsyncRepository<Favorite> favoriteRepo, IAsyncRepository<Review> reviewRepo)
+        public UserService(IUserRepository userRepository, ICryptoService cryptoService)
         {
             _userRepository = userRepository;
             _encryptionService = cryptoService;
-            _favoriteRepo = favoriteRepo;
-            _reviewRepo = reviewRepo;
+            //_favoriteRepo = favoriteRepo;
+            //_reviewRepo = reviewRepo;
         }
         public async Task<bool> AddFavorite(FavoriteRequestModel favoriteRequest)
         {
@@ -36,34 +35,36 @@ namespace MovieShop.Infrastructure.Services
                 //throw new Exception("You are not Authorized");
                 return false;
             }
-            await _favoriteRepo.AddAsync(FavRequestToFav(favoriteRequest));
+            //await _favoriteRepo.AddAsync(FavRequestToFav(favoriteRequest));
             return true;
         }
         public async Task<bool> FavoriteExists(int id, int movieId)
         {
-            return await _favoriteRepo.GetExistsAsync(f => f.Id == id && f.MovieId == movieId);
+            throw new NotImplementedException();
+            //return await _favoriteRepo.GetExistsAsync(f => f.Id == id && f.MovieId == movieId);
         }
         public async Task<bool> RemoveFavorite(FavoriteRequestModel favoriteRequest)
         {
-            var dbFavorite =
-                await _favoriteRepo.ListAsync(r => r.UserId == favoriteRequest.UserId &&
-                                                         r.MovieId == favoriteRequest.MovieId);
-            await _favoriteRepo.DeleteAsync(dbFavorite.First());
+            //var dbFavorite =
+            //    await _favoriteRepo.ListAsync(r => r.UserId == favoriteRequest.UserId &&
+            //                                             r.MovieId == favoriteRequest.MovieId);
+            //await _favoriteRepo.DeleteAsync(dbFavorite.First());
             return true;
         }
         
         public async Task AddMovieReview(ReviewRequestModel reviewRequest)
         {
-            await _reviewRepo.AddAsync(ReviewRequestToRev(reviewRequest));
+            //await _reviewRepo.AddAsync(ReviewRequestToRev(reviewRequest));
         }
         public async Task UpdateMovieReview(ReviewRequestModel reviewRequest)
         {
-            await _reviewRepo.UpdateAsync(ReviewRequestToRev(reviewRequest));
+            //await _reviewRepo.UpdateAsync(ReviewRequestToRev(reviewRequest));
         }
         public async Task DeleteMovieReview(int userId, int movieId)
         {
-            var review = await _reviewRepo.ListAsync(r => r.UserId == userId && r.MovieId == movieId);
-            await _reviewRepo.DeleteAsync(review.First());
+            //var review = await _reviewRepo.ListAsync(r => r.UserId == userId && r.MovieId == movieId);
+            //await _reviewRepo.DeleteAsync(review.First());
+            throw new NotImplementedException();
         }
 
         public async Task<UserRegisterResponseModel> CreateUser(UserRegisterRequestModel requestModel)
@@ -102,9 +103,10 @@ namespace MovieShop.Infrastructure.Services
             throw new NotImplementedException();
         }
 
-        public async Task<ReviewResponseModel> GetAllReviewsByUser(int id)
+        public Task<ReviewResponseModel> GetAllReviewsByUser(int id)
         {
-            var userReviews = await _reviewRepo.ListAllAsync(r => r.UserId == id, r => r.Movie);
+            throw new NotImplementedException();
+            //var userReviews = await _reviewRepo.ListAllAsync(r => r.UserId == id, r => r.Movie);
         }
 
         public Task<PagedResultSet<User>> GetAllUsersByPagination(int pageSize = 20, int page = 0, string lastName = "")

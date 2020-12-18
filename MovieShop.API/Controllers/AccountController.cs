@@ -2,12 +2,17 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using MovieShop.Core.Models.Request;
+using MovieShop.Core.Models.Response;
 using MovieShop.Core.ServiceInterfaces;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace MovieShop.API.Controllers
@@ -17,9 +22,11 @@ namespace MovieShop.API.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IUserService _userService;
-        public AccountController(IUserService userService)
+        private readonly IConfiguration _configuration;
+        public AccountController(IUserService userService, IConfiguration configuration)
         {
             _userService = userService;
+            _configuration = configuration;
         }
 
         [HttpPost]
@@ -50,25 +57,40 @@ namespace MovieShop.API.Controllers
         [Route("login")]
         public async Task<IActionResult> Login(LoginRequestModel loginRequest)
         {
-            if (!ModelState.IsValid) return BadRequest(new {message ="Model State Invalid"});
+            if (!ModelState.IsValid) return BadRequest(new { message = "Model State Invalid" });
             var user = await _userService.ValidateUser(loginRequest.Email, loginRequest.Password);
-            if (user == null)
+            if (user != null)
             {
-                return BadRequest(new { message = "invalid log in attempt" });
+                var token = GenerateJWT(user);
+                return Ok(new { token });
             }
-            // only sucessfully loged in
+            return Unauthorized();
+        }
+        private string GenerateJWT(UserLoginResponseModel userLogin)
+        {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, user.Email),
-                new Claim(ClaimTypes.GivenName, user.FirstName),
-                new Claim(ClaimTypes.Surname,  user.LastName),
-                new Claim(ClaimTypes.NameIdentifier,  user.Id.ToString())
+                new Claim(ClaimTypes.NameIdentifier, userLogin.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.GivenName, userLogin.FirstName),
+                new Claim(JwtRegisteredClaimNames.FamilyName, userLogin.LastName),
+                new Claim(JwtRegisteredClaimNames.Email, userLogin.Email),
             };
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
-                new ClaimsPrincipal(claimsIdentity));
-            return Ok();
+            var identityClaims = new ClaimsIdentity();
+            identityClaims.AddClaims(claims);
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["TokenSettings:PrivateKey"]));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);
+            var expires = DateTime.UtcNow.AddHours(_configuration.GetValue<double>("TokenSettings:ExpirationHours"));
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = identityClaims,
+                Audience = _configuration["TokenSettings:Audience"],
+                Issuer = _configuration["TokenSettings:Issuer"],
+                SigningCredentials = credentials,
+                Expires = expires
+            };
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var encodedToken = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(encodedToken);
         }
-
     }
 }
