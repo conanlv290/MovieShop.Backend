@@ -125,6 +125,11 @@ namespace MovieShop.UnitTests
             return _movies;
         }
 
+        public Task<IEnumerable<Review>> GetMovieReviewById(int id)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<IEnumerable<Movie>> GetMoviesByGenre(int genreId)
         {
             throw new NotImplementedException();

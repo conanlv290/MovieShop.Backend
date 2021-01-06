@@ -102,9 +102,13 @@ namespace MovieShop.Infrastructure.Services
                 movieResponseModel.Add(new MovieResponseModel
                 {
                     Id = movie.Id,
-                    PostUrl = movie.PosterUrl,
+                    PosterUrl = movie.PosterUrl,
                     ReleaseDate = movie.ReleaseDate.Value,
-                    Title = movie.Title
+                    Title = movie.Title,
+                    Overview = movie.Overview,
+                    Budget = movie.Budget,
+                    Tagline = movie.Tagline,
+                    Revenue = movie.Revenue,
                 });
             }
             return movieResponseModel;
@@ -131,7 +135,11 @@ namespace MovieShop.Infrastructure.Services
                 Id = movie.Id,
                 PosterUrl = movie.PosterUrl,
                 ReleaseDate = movie.ReleaseDate.Value,
-                Title = movie.Title
+                Title = movie.Title,
+                Overview = movie.Overview,
+                Budget = movie.Budget,
+                Tagline = movie.Tagline,
+                Revenue = movie.Revenue,
             };
             return movieResponseModel;
         }
